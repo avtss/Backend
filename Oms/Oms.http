@@ -1,0 +1,6 @@
+@Oms_HostAddress = http://localhost:5296
+
+GET {{Oms_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

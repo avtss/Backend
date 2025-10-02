@@ -2,11 +2,19 @@ using Dapper;
 using WebApi.DAL;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Oms.Config;
+using Oms.Services;
 
 // создается билдер веб приложения
 var builder = WebApplication.CreateBuilder(args);
 
 DefaultTypeMap.MatchNamesWithUnderscores = true;
+
+builder.Services.Configure<RabbitMqSettings>(
+    builder.Configuration.GetSection(nameof(RabbitMqSettings)));
+
+builder.Services.AddSingleton<RabbitMqService>();
+
 builder.Services.AddScoped<UnitOfWork>();
 
 builder.Services.Configure<DbSettings>(builder.Configuration.GetSection(nameof(DbSettings)));

@@ -102,3 +102,16 @@ C:\Users\aveti\Shop\WebApi\obj\Debug\net9.0\refint\WebApi.dll
 C:\Users\aveti\Shop\WebApi\obj\Debug\net9.0\WebApi.pdb
 C:\Users\aveti\Shop\WebApi\obj\Debug\net9.0\WebApi.genruntimeconfig.cache
 C:\Users\aveti\Shop\WebApi\obj\Debug\net9.0\ref\WebApi.dll
+C:\Users\aveti\Shop\WebApi\obj\Debug\net9.0\WebApi.sourcelink.json
+C:\Users\aveti\Shop\WebApi\bin\Debug\net9.0\Oms.deps.json
+C:\Users\aveti\Shop\WebApi\bin\Debug\net9.0\Oms.runtimeconfig.json
+C:\Users\aveti\Shop\WebApi\bin\Debug\net9.0\Oms.staticwebassets.endpoints.json
+C:\Users\aveti\Shop\WebApi\bin\Debug\net9.0\Oms.exe
+C:\Users\aveti\Shop\WebApi\bin\Debug\net9.0\Newtonsoft.Json.dll
+C:\Users\aveti\Shop\WebApi\bin\Debug\net9.0\RabbitMQ.Client.dll
+C:\Users\aveti\Shop\WebApi\bin\Debug\net9.0\Common.dll
+C:\Users\aveti\Shop\WebApi\bin\Debug\net9.0\Messages.dll
+C:\Users\aveti\Shop\WebApi\bin\Debug\net9.0\Oms.dll
+C:\Users\aveti\Shop\WebApi\bin\Debug\net9.0\Oms.pdb
+C:\Users\aveti\Shop\WebApi\bin\Debug\net9.0\Messages.pdb
+C:\Users\aveti\Shop\WebApi\bin\Debug\net9.0\Common.pdb

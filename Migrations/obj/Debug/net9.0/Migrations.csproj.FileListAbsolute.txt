@@ -88,3 +88,4 @@ C:\Users\aveti\Shop\Migrations\obj\Debug\net9.0\refint\Migrations.dll
 C:\Users\aveti\Shop\Migrations\obj\Debug\net9.0\Migrations.pdb
 C:\Users\aveti\Shop\Migrations\obj\Debug\net9.0\Migrations.genruntimeconfig.cache
 C:\Users\aveti\Shop\Migrations\obj\Debug\net9.0\ref\Migrations.dll
+C:\Users\aveti\Shop\Migrations\obj\Debug\net9.0\Migrations.sourcelink.json

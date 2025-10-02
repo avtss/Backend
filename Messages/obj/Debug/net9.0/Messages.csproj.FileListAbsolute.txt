@@ -1,0 +1,12 @@
+C:\Users\aveti\Shop\Messages\bin\Debug\net9.0\Messages.deps.json
+C:\Users\aveti\Shop\Messages\bin\Debug\net9.0\Messages.dll
+C:\Users\aveti\Shop\Messages\bin\Debug\net9.0\Messages.pdb
+C:\Users\aveti\Shop\Messages\obj\Debug\net9.0\Messages.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\aveti\Shop\Messages\obj\Debug\net9.0\Messages.AssemblyInfoInputs.cache
+C:\Users\aveti\Shop\Messages\obj\Debug\net9.0\Messages.AssemblyInfo.cs
+C:\Users\aveti\Shop\Messages\obj\Debug\net9.0\Messages.csproj.CoreCompileInputs.cache
+C:\Users\aveti\Shop\Messages\obj\Debug\net9.0\Messages.sourcelink.json
+C:\Users\aveti\Shop\Messages\obj\Debug\net9.0\Messages.dll
+C:\Users\aveti\Shop\Messages\obj\Debug\net9.0\refint\Messages.dll
+C:\Users\aveti\Shop\Messages\obj\Debug\net9.0\Messages.pdb
+C:\Users\aveti\Shop\Messages\obj\Debug\net9.0\ref\Messages.dll

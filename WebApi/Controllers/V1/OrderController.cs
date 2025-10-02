@@ -6,9 +6,18 @@ using Models.Dto.Common;
 using Models.Dto.V1.Requests;
 using Models.Dto.V1.Responses;
 using FluentValidation;
+using Oms.Services;
+using Microsoft.Extensions.Options;
+using Oms.Config;
+using Messages; 
 
 [Route("api/v1/order")]
-public class OrderController(OrderService orderService, IValidatorFactory validatorFactory): ControllerBase
+public class OrderController(
+    OrderService orderService, 
+    IValidatorFactory validatorFactory,
+    RabbitMqService rabbitMqService,
+    IOptions<RabbitMqSettings> settings
+) : ControllerBase
 {
     [HttpPost("batch-create")]
     public async Task<ActionResult<V1CreateOrderResponse>> V1BatchCreate([FromBody] V1CreateOrderRequest request, CancellationToken token)
@@ -38,12 +47,31 @@ public class OrderController(OrderService orderService, IValidatorFactory valida
             }).ToArray()
         }).ToArray(), token);
 
+        var messages = res.Select(x => new OrderCreatedMessage
+        {
+            Id = x.Id,
+            CustomerId = x.CustomerId,
+            DeliveryAddress = x.DeliveryAddress,
+            TotalPriceCents = x.TotalPriceCents,
+            TotalPriceCurrency = x.TotalPriceCurrency,
+            CreatedAt = x.CreatedAt,
+            UpdatedAt = x.UpdatedAt,
+            OrderItems = x.OrderItems.Select(p => new OrderItemMessage
+            {
+                ProductId = p.ProductId,
+                Quantity = p.Quantity,
+                PriceCents = p.PriceCents,
+                PriceCurrency = p.PriceCurrency
+            }).ToArray()
+        });
+
+        await rabbitMqService.Publish(messages, settings.Value.OrderCreatedQueue, token);
+
         return Ok(new V1CreateOrderResponse
         {
             Orders = Map(res)
         });
     }
-
 
     [HttpPost("query")]
     public async Task<ActionResult<V1QueryOrdersResponse>> V1QueryOrders([FromBody] V1QueryOrdersRequest request, CancellationToken token)
