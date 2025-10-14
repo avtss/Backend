@@ -1523,6 +1523,7 @@
           "Common": "1.0.0",
           "Messages": "1.0.0",
           "Microsoft.AspNetCore.OpenApi": "9.0.8",
+          "Models": "1.0.0",
           "RabbitMQ.Client": "7.1.2"
         },
         "compile": {

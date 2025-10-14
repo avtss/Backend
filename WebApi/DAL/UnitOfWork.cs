@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Npgsql;
+using WebApi.DAL.Models;
 
 namespace WebApi.DAL;
 
@@ -22,6 +23,8 @@ public class UnitOfWork(IOptions<DbSettings> dbSettings): IDisposable
        
         dataSource.MapComposite<V1OrderDal>("v1_order");
         dataSource.MapComposite<V1OrderItemDal>("v1_order_item");
+        dataSource.MapComposite<V1AuditLogOrderDal>("v1_audit_log_order");
+
 
         _connection = dataSource.Build().CreateConnection();
         _connection.StateChange += (sender, args) =>
@@ -58,3 +61,4 @@ public class UnitOfWork(IOptions<DbSettings> dbSettings): IDisposable
         _connection = null;
     }
 }
+

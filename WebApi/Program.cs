@@ -4,6 +4,10 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Oms.Config;
 using Oms.Services;
+using System.Text.Json;
+using WebApi.BLL.Services;
+using WebApi.DAL.Interfaces;
+using WebApi.DAL.Repositories;
 
 // создается билдер веб приложения
 var builder = WebApplication.CreateBuilder(args);
@@ -23,12 +27,18 @@ builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
 builder.Services.AddScoped<OrderService>();
 
+builder.Services.AddScoped<IAuditLogOrderRepository, AuditLogOrderRepository>();
+builder.Services.AddScoped<AuditLogOrderService>();
+
 
 builder.Services.AddTransient<IValidatorFactory, ServiceProviderValidatorFactory>();
 builder.Services.AddValidatorsFromAssemblyContaining(typeof(Program));
 builder.Services.AddScoped<ValidatorFactory>();
 // зависимость, которая автоматически подхватывает все контроллеры в проекте
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
+});
 // добавляем swagger
 builder.Services.AddSwaggerGen();
 
@@ -48,3 +58,6 @@ Migrations.Program.Main([]);
 
 // запускам приложение
 app.Run();
+
+
+

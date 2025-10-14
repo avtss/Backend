@@ -9,7 +9,7 @@ using FluentValidation;
 using Oms.Services;
 using Microsoft.Extensions.Options;
 using Oms.Config;
-using Messages; 
+using Messages;
 
 [Route("api/v1/order")]
 public class OrderController(
@@ -58,10 +58,16 @@ public class OrderController(
             UpdatedAt = x.UpdatedAt,
             OrderItems = x.OrderItems.Select(p => new OrderItemMessage
             {
+                Id = p.Id,
+                OrderId = p.OrderId,
                 ProductId = p.ProductId,
                 Quantity = p.Quantity,
+                ProductTitle = p.ProductTitle,
+                ProductUrl = p.ProductUrl,
                 PriceCents = p.PriceCents,
-                PriceCurrency = p.PriceCurrency
+                PriceCurrency = p.PriceCurrency,
+                CreatedAt = p.CreatedAt,
+                UpdatedAt = p.UpdatedAt
             }).ToArray()
         });
 
@@ -126,3 +132,6 @@ public class OrderController(
         }).ToArray();
     }
 }
+
+
+
