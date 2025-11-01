@@ -9,6 +9,7 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
         <PackageReference Include="RabbitMQ.Client" Version="7.1.2" />
+        <PackageReference Include="AutoFixture" Version="4.18.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -16,6 +17,13 @@
       <ProjectReference Include="..\Messages\Messages.csproj" />
       <ProjectReference Include="..\Models\Models.csproj" />
 
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Remove="appsettings.json" />
+        <Content Remove="appsettings.Development.json" />
+        <None Include="appsettings.json" />
+        <None Include="appsettings.Development.json" />
     </ItemGroup>
 
 

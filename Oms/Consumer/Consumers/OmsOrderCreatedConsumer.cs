@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Common;
@@ -36,54 +37,72 @@ public class OmsOrderCreatedConsumer : IHostedService
         };
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+     public async Task StartAsync(CancellationToken cancellationToken)
     {
         _connection = await _factory.CreateConnectionAsync(cancellationToken);
         _channel = await _connection.CreateChannelAsync(cancellationToken: cancellationToken);
-
         await _channel.QueueDeclareAsync(
-            queue: _rabbitMqSettings.Value.OrderCreatedQueue,
-            durable: false,
+            queue: _rabbitMqSettings.Value.OrderCreatedQueue, 
+            durable: false, 
             exclusive: false,
             autoDelete: false,
-            arguments: null,
+            arguments: null, 
             cancellationToken: cancellationToken);
 
+        var sw = new Stopwatch();
+
+        await _channel.BasicQosAsync(prefetchSize: 0, prefetchCount: 1, global: false, cancellationToken: cancellationToken);
         _consumer = new AsyncEventingBasicConsumer(_channel);
-        _consumer.ReceivedAsync += async (_, args) =>
+        _consumer.ReceivedAsync += async (sender, args) =>
         {
-            var messageBytes = args.Body.ToArray();
-            var payload = Encoding.UTF8.GetString(messageBytes);
-            var order = payload.FromJson<OmsOrderCreatedMessage>();
-
-            Console.WriteLine("Received: " + payload);
-
-            var orderItems = order.OrderItems ?? Array.Empty<OrderItemMessage>();
-            var logOrders = orderItems.Select(item => new V1AuditLogOrderRequest.LogOrder
+            sw.Restart();
+            try
             {
-                OrderId = order.Id,
-                OrderItemId = item.Id,
-                CustomerId = order.CustomerId,
-                OrderStatus = nameof(OrderStatus.Created)
-            }).ToArray();
+                var body = args.Body.ToArray();
+                var payload = Encoding.UTF8.GetString(body);
+                var message = payload.FromJson<OmsOrderCreatedMessage>();
 
-            if (logOrders.Length == 0)
-            {
-                return;
+                using var scope = _serviceProvider.CreateScope();
+                var client = scope.ServiceProvider.GetRequiredService<OmsClient>();
+
+                var orders = (message.OrderItems ?? Array.Empty<OrderItemMessage>())
+                    .Select(item => new V1AuditLogOrderRequest.LogOrder
+                    {
+                        OrderId = message.Id,
+                        OrderItemId = item.Id,
+                        CustomerId = message.CustomerId,
+                        OrderStatus = OrderStatus.Created.ToString()
+                    })
+                    .ToArray();
+
+                if (orders.Length > 0)
+                {
+                    var request = new V1AuditLogOrderRequest
+                    {
+                        Orders = orders
+                    };
+
+                    await client.LogOrder(request, cancellationToken);
+                }
+                else
+                {
+                    Console.WriteLine("Received order without items; skipping audit log.");
+                }
+                
+                await _channel.BasicAckAsync(args.DeliveryTag, false, cancellationToken);
+                sw.Stop();
+                Console.WriteLine($"Order created consumed in {sw.ElapsedMilliseconds} ms");
             }
-
-            using var scope = _serviceProvider.CreateScope();
-            var client = scope.ServiceProvider.GetRequiredService<OmsClient>();
-
-            await client.LogOrder(new V1AuditLogOrderRequest
+            catch (Exception ex)
             {
-                Orders = logOrders
-            }, CancellationToken.None);
+                Console.WriteLine(ex.Message);
+                await _channel.BasicNackAsync(args.DeliveryTag, false, true, cancellationToken);
+            }
         };
-
+        
         await _channel.BasicConsumeAsync(
-            queue: _rabbitMqSettings.Value.OrderCreatedQueue,
-            autoAck: true,
+            queue: _rabbitMqSettings.Value.OrderCreatedQueue, 
+            autoAck: false, 
             consumer: _consumer,
             cancellationToken: cancellationToken);
     }

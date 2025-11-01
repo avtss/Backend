@@ -4,6 +4,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Oms.Config;
 using Oms.Services;
+using Oms.Jobs;
 using System.Text.Json;
 using WebApi.BLL.Services;
 using WebApi.DAL.Interfaces;
@@ -26,6 +27,7 @@ builder.Services.Configure<DbSettings>(builder.Configuration.GetSection(nameof(D
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
 builder.Services.AddScoped<OrderService>();
+builder.Services.AddScoped<Oms.Services.OrderService>();
 
 builder.Services.AddScoped<IAuditLogOrderRepository, AuditLogOrderRepository>();
 builder.Services.AddScoped<AuditLogOrderService>();
@@ -41,6 +43,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 });
 // добавляем swagger
 builder.Services.AddSwaggerGen();
+builder.Services.AddHostedService<OrderGenerator>();
 
 // собираем билдер в приложение
 var app = builder.Build();
