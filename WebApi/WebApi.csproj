@@ -18,6 +18,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Models\Models.csproj" />
     <ProjectReference Include="..\Migrations\Migrations.csproj" />
+    <ProjectReference Include="..\Oms\Oms.csproj" />
+    <ProjectReference Include="..\Messages\Messages.csproj" />
   </ItemGroup>
 
 </Project>

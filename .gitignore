@@ -1,0 +1,46 @@
+# Build results
+bin/
+obj/
+out/
+
+# User specific files
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build artifacts
+*.dll
+*.exe
+*.pdb
+*.cache
+*.log
+
+# VS working directories
+.vs/
+.idea/
+
+# Rider / ReSharper
+_ReSharper*/
+*.DotSettings.user
+
+# macOS
+.DS_Store
+
+# Docker volumes/containers artifacts
+**/docker-compose.override.yml
+
+# Coverage / test results
+coverage*/
+TestResult*/
+*.coverage
+*.coveragexml
+
+# Packages
+*.nupkg
+*.snupkg
+.packages/
+
+# Publish output
+publish/
