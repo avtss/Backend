@@ -27,6 +27,11 @@ services:
       - POSTGRESQL_USERNAME=user
       - POSTGRESQL_DATABASE=postgres
       - POSTGRESQL_PASSWORD=mypassword
+      - DATABASES_HOST=postgres
+      - DATABASES_PORT=5432
+      - DATABASES_DBNAME=postgres
+      - DATABASES_USER=user
+      - DATABASES_PASSWORD=mypassword
       - PGBOUNCER_IDLE_TRANSACTION_TIMEOUT=60
       - PGBOUNCER_POOL_MODE=transaction
       - PGBOUNCER_SERVER_RESET_QUERY_ALWAYS=0
@@ -72,13 +77,14 @@ services:
     build:
       context: .
       dockerfile: Oms/Dockerfile
-    container_name: oms-consumer
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - RabbitMqSettings__HostName=rabbitmq
       - RabbitMqSettings__Port=5672
       - RabbitMqSettings__OrderCreatedQueue=oms.order.created
       - HttpClient__Oms__BaseAddress=http://webapi:8080
+    deploy:
+      replicas: 5
     depends_on:
       rabbitmq:
         condition: service_started

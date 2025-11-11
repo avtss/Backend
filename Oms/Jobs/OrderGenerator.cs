@@ -1,8 +1,10 @@
+using System;
+using System.Linq;
 using AutoFixture;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Models.Dto.Common;
 using Oms.Services;
+using Models.Dto.Common;
 
 namespace Oms.Jobs;
 
@@ -13,10 +15,10 @@ public class OrderGenerator(IServiceProvider serviceProvider) : BackgroundServic
         var fixture = new Fixture();
         using var scope = serviceProvider.CreateScope();
         var orderService = scope.ServiceProvider.GetRequiredService<OrderService>();
-        
+
         while (!stoppingToken.IsCancellationRequested)
         {
-            var orders = Enumerable.Range(1, 10)
+            var orders = Enumerable.Range(1, 50)
                 .Select(_ =>
                 {
                     var orderItem = fixture.Build<OrderItemUnit>()
@@ -27,15 +29,15 @@ public class OrderGenerator(IServiceProvider serviceProvider) : BackgroundServic
                     var order = fixture.Build<OrderUnit>()
                         .With(x => x.TotalPriceCurrency, "RUB")
                         .With(x => x.TotalPriceCents, 1000)
-                        .With(x => x.OrderItems, [orderItem])
+                        .With(x => x.OrderItems, new[] { orderItem })
                         .Create();
 
                     return order;
                 })
                 .ToArray();
-                
+
             await orderService.BatchInsert(orders, stoppingToken);
-            
+
             await Task.Delay(250, stoppingToken);
         }
     }
