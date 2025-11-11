@@ -21,7 +21,8 @@ public static class Program
         // у нас будет два варианта - Development/Production
         var config = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile($"appsettings.{environmentName}.json")
+            .AddJsonFile($"appsettings.{environmentName}.json", optional: true)
+            .AddEnvironmentVariables()
             .Build();
 
         // Получаем строку подключения из конфига `appsettings.{Environment}.json`

@@ -11,7 +11,7 @@ builder.Services.Configure<RabbitMqSettings>(builder.Configuration.GetSection(na
 
 builder.Services.AddSingleton<RabbitMqService>();
 builder.Services.AddScoped<OrderService>();
-builder.Services.AddHostedService<OmsOrderCreatedConsumer>();
+builder.Services.AddHostedService<BatchOmsOrderCreatedConsumer>();
 builder.Services.AddHostedService<OrderGenerator>();
 builder.Services.AddHttpClient<OmsClient>(c => c.BaseAddress = new Uri(builder.Configuration["HttpClient:Oms:BaseAddress"]));
 
