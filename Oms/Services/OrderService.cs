@@ -1,32 +1,29 @@
 using System;
 using System.Linq;
 using Messages;
-using Microsoft.Extensions.Options;
 using Models.Dto.Common;
-using Oms.Config;
 
 namespace Oms.Services;
 
 public class OrderService
 {
     private readonly RabbitMqService _rabbitMqService;
-    private readonly IOptions<RabbitMqSettings> _settings;
 
-    public OrderService(RabbitMqService rabbitMqService, IOptions<RabbitMqSettings> settings)
+    public OrderService(RabbitMqService rabbitMqService)
     {
         _rabbitMqService = rabbitMqService;
-        _settings = settings;
     }
 
     public Task BatchInsert(IEnumerable<OrderUnit> orders, CancellationToken cancellationToken)
     {
-        var messages = orders.Select(order => new OrderCreatedMessage
+        var messages = orders.Select(order => new OmsOrderCreatedMessage
         {
             Id = order.Id,
             CustomerId = order.CustomerId,
             DeliveryAddress = order.DeliveryAddress,
             TotalPriceCents = order.TotalPriceCents,
             TotalPriceCurrency = order.TotalPriceCurrency,
+            OrderStatus = order.OrderStatus ?? "created",
             CreatedAt = order.CreatedAt,
             UpdatedAt = order.UpdatedAt,
             OrderItems = (order.OrderItems ?? Array.Empty<OrderItemUnit>())
@@ -49,8 +46,8 @@ public class OrderService
         return BatchInsert(messages, cancellationToken);
     }
 
-    public async Task BatchInsert(IEnumerable<OrderCreatedMessage> messages, CancellationToken cancellationToken)
+    public async Task BatchInsert(IEnumerable<OmsOrderCreatedMessage> messages, CancellationToken cancellationToken)
     {
-        await _rabbitMqService.Publish(messages, _settings.Value.OrderCreatedQueue, cancellationToken);
+        await _rabbitMqService.Publish(messages, cancellationToken);
     }
 }

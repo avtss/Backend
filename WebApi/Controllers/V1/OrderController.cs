@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,16 +8,13 @@ using Models.Dto.V1.Requests;
 using Models.Dto.V1.Responses;
 using FluentValidation;
 using Oms.Services;
-using Microsoft.Extensions.Options;
-using Oms.Config;
 using Messages;
 
 [Route("api/v1/order")]
 public class OrderController(
     OrderService orderService, 
     IValidatorFactory validatorFactory,
-    RabbitMqService rabbitMqService,
-    IOptions<RabbitMqSettings> settings
+    RabbitMqService rabbitMqService
 ) : ControllerBase
 {
     [HttpPost("batch-create")]
@@ -36,6 +34,7 @@ public class OrderController(
             DeliveryAddress = x.DeliveryAddress,
             TotalPriceCents = x.TotalPriceCents,
             TotalPriceCurrency = x.TotalPriceCurrency,
+            OrderStatus = "created",
             OrderItems = x.OrderItems.Select(p => new OrderItemUnit
             {
                 ProductId = p.ProductId,
@@ -47,13 +46,14 @@ public class OrderController(
             }).ToArray()
         }).ToArray(), token);
 
-        var messages = res.Select(x => new OrderCreatedMessage
+        var messages = res.Select(x => new OmsOrderCreatedMessage
         {
             Id = x.Id,
             CustomerId = x.CustomerId,
             DeliveryAddress = x.DeliveryAddress,
             TotalPriceCents = x.TotalPriceCents,
             TotalPriceCurrency = x.TotalPriceCurrency,
+            OrderStatus = x.OrderStatus,
             CreatedAt = x.CreatedAt,
             UpdatedAt = x.UpdatedAt,
             OrderItems = x.OrderItems.Select(p => new OrderItemMessage
@@ -71,7 +71,7 @@ public class OrderController(
             }).ToArray()
         });
 
-        await rabbitMqService.Publish(messages, settings.Value.OrderCreatedQueue, token);
+        await rabbitMqService.Publish(messages, token);
 
         return Ok(new V1CreateOrderResponse
         {
@@ -104,6 +104,41 @@ public class OrderController(
             Orders = Map(res)
         });
     }
+
+    [HttpPost("update-status")]
+    public async Task<ActionResult<V1UpdateOrderStatusResponse>> V1UpdateOrdersStatus(
+        [FromBody] V1UpdateOrdersStatusRequest request,
+        CancellationToken token)
+    {
+        var validationResult = await validatorFactory.GetValidator<V1UpdateOrdersStatusRequest>()
+            .ValidateAsync(request, token);
+
+        if (!validationResult.IsValid)
+        {
+            return BadRequest(validationResult.ToDictionary());
+        }
+
+        try
+        {
+            await orderService.UpdateStatus(request.OrderIds, request.NewStatus, token);
+
+            var normalizedStatus = request.NewStatus?.Trim().ToLowerInvariant() ?? string.Empty;
+            var messages = request.OrderIds.Select(id => new OmsOrderStatusChangedMessage
+            {
+                OrderId = id,
+                OrderStatus = normalizedStatus,
+                UpdatedAt = DateTimeOffset.UtcNow
+            });
+
+            await rabbitMqService.Publish(messages, token);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+
+        return Ok(new V1UpdateOrderStatusResponse());
+    }
     
     private Models.Dto.Common.OrderUnit[] Map(OrderUnit[] orders)
     {
@@ -114,6 +149,7 @@ public class OrderController(
             DeliveryAddress = x.DeliveryAddress,
             TotalPriceCents = x.TotalPriceCents,
             TotalPriceCurrency = x.TotalPriceCurrency,
+            OrderStatus = x.OrderStatus,
             CreatedAt = x.CreatedAt,
             UpdatedAt = x.UpdatedAt,
             OrderItems = x.OrderItems.Select(p => new Models.Dto.Common.OrderItemUnit
@@ -132,6 +168,3 @@ public class OrderController(
         }).ToArray();
     }
 }
-
-
-
