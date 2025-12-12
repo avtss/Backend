@@ -1,6 +1,14 @@
+using System;
+using System.Linq;
+using Messages;
+using Oms.Services;
 using WebApi.DAL;
 
-public class OrderService(UnitOfWork unitOfWork, IOrderRepository orderRepository, IOrderItemRepository orderItemRepository)
+public class OrderService(
+    UnitOfWork unitOfWork,
+    IOrderRepository orderRepository,
+    IOrderItemRepository orderItemRepository,
+    RabbitMqService rabbitMqService)
 {
     /// <summary>
     /// Метод создания заказов
@@ -18,6 +26,7 @@ public async Task<OrderUnit[]> BatchInsert(OrderUnit[] orderUnits, CancellationT
                 DeliveryAddress = o.DeliveryAddress,
                 TotalPriceCents = o.TotalPriceCents,
                 TotalPriceCurrency = o.TotalPriceCurrency,
+                OrderStatus = o.OrderStatus ?? "created",
                 CreatedAt = now,
                 UpdatedAt = now
             }).ToArray();
@@ -52,6 +61,7 @@ public async Task<OrderUnit[]> BatchInsert(OrderUnit[] orderUnits, CancellationT
                 DeliveryAddress = o.DeliveryAddress,
                 TotalPriceCents = o.TotalPriceCents,
                 TotalPriceCurrency = o.TotalPriceCurrency,
+                OrderStatus = o.OrderStatus,
                 CreatedAt = o.CreatedAt,
                 UpdatedAt = o.UpdatedAt,
                 OrderItems = itemsLookup[o.Id].Select(i => new OrderItemUnit
@@ -109,6 +119,63 @@ public async Task<OrderUnit[]> BatchInsert(OrderUnit[] orderUnits, CancellationT
 
         return Map(orders, orderItemLookup);
     }
+
+    public async Task UpdateStatus(long[] orderIds, string newStatus, CancellationToken token)
+    {
+        if (orderIds is null || orderIds.Length == 0)
+        {
+            return;
+        }
+
+        var orders = await orderRepository.Query(new QueryOrdersDalModel
+        {
+            Ids = orderIds,
+            Limit = 0,
+            Offset = 0
+        }, token);
+
+        if (orders.Length == 0)
+        {
+            return;
+        }
+
+        var newStatusNormalized = newStatus?.Trim().ToLowerInvariant() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(newStatusNormalized))
+        {
+            throw new InvalidOperationException("NewStatus is required.");
+        }
+
+        var invalid = orders.Any(o =>
+            string.Equals(o.OrderStatus, "created", StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(newStatusNormalized, "completed", StringComparison.OrdinalIgnoreCase));
+
+        if (invalid)
+        {
+            throw new InvalidOperationException("Cannot transition order from created to completed.");
+        }
+
+        var orderItems = await orderItemRepository.Query(new QueryOrderItemsDalModel
+        {
+            OrderIds = orderIds
+        }, token);
+
+        var itemsLookup = orderItems.ToLookup(x => x.OrderId);
+
+        var now = DateTimeOffset.UtcNow;
+        await orderRepository.UpdateStatus(orderIds, newStatusNormalized, now, token);
+
+        var statusMessages = orders.Select(o => new OmsOrderStatusChangedMessage
+        {
+            OrderId = o.Id,
+            OrderStatus = newStatusNormalized,
+            CustomerId = o.CustomerId,
+            OrderItemIds = itemsLookup[o.Id].Select(i => i.Id).ToArray(),
+            UpdatedAt = now
+        });
+
+        await rabbitMqService.Publish(statusMessages, token);
+    }
     
     private OrderUnit[] Map(V1OrderDal[] orders, ILookup<long, V1OrderItemDal> orderItemLookup = null)
     {
@@ -119,6 +186,7 @@ public async Task<OrderUnit[]> BatchInsert(OrderUnit[] orderUnits, CancellationT
             DeliveryAddress = x.DeliveryAddress,
             TotalPriceCents = x.TotalPriceCents,
             TotalPriceCurrency = x.TotalPriceCurrency,
+            OrderStatus = x.OrderStatus,
             CreatedAt = x.CreatedAt,
             UpdatedAt = x.UpdatedAt,
             OrderItems = orderItemLookup?[x.Id].Select(o => new OrderItemUnit

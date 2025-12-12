@@ -10,6 +10,8 @@ public class OrderUnit
 
     public string TotalPriceCurrency { get; set; }
 
+    public string OrderStatus { get; set; }
+
     public DateTimeOffset CreatedAt { get; set; }
     
     public DateTimeOffset UpdatedAt { get; set; }

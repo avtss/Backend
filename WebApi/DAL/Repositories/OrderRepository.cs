@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 using Dapper;
 using WebApi.DAL;
@@ -15,6 +16,7 @@ public class OrderRepository(UnitOfWork unitOfWork) : IOrderRepository
                 delivery_address,
                 total_price_cents,
                 total_price_currency,
+                order_status,
                 created_at,
                 updated_at
              )
@@ -23,6 +25,7 @@ public class OrderRepository(UnitOfWork unitOfWork) : IOrderRepository
                 delivery_address,
                 total_price_cents,
                 total_price_currency,
+                order_status,
                 created_at,
                 updated_at
             from unnest(@Orders)
@@ -32,6 +35,7 @@ public class OrderRepository(UnitOfWork unitOfWork) : IOrderRepository
                 delivery_address,
                 total_price_cents,
                 total_price_currency,
+                order_status,
                 created_at,
                 updated_at;
         ";
@@ -57,6 +61,7 @@ public class OrderRepository(UnitOfWork unitOfWork) : IOrderRepository
                 delivery_address,
                 total_price_cents,
                 total_price_currency,
+                order_status,
                 created_at,
                 updated_at
             from orders
@@ -105,6 +110,19 @@ public class OrderRepository(UnitOfWork unitOfWork) : IOrderRepository
         
         return res.ToArray();
     }
+
+    public async Task UpdateStatus(long[] ids, string newStatus, DateTimeOffset updatedAt, CancellationToken token)
+    {
+        var sql = @"
+            update orders
+            set 
+                order_status = @NewStatus,
+                updated_at = @UpdatedAt
+            where id = any(@Ids);
+        ";
+
+        var conn = await unitOfWork.GetConnection(token);
+        await conn.ExecuteAsync(new CommandDefinition(
+            sql, new { Ids = ids, NewStatus = newStatus, UpdatedAt = updatedAt }, cancellationToken: token));
+    }
 }
-
-

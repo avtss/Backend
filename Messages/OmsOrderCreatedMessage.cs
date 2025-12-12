@@ -1,7 +1,9 @@
-﻿namespace Messages;
+namespace Messages;
 
-public class OrderCreatedMessage
+public class OmsOrderCreatedMessage : BaseMessage
 {
+    public override string RoutingKey => "order.created";
+
     public long Id { get; set; }
 
     public long CustomerId { get; set; }
@@ -12,10 +14,11 @@ public class OrderCreatedMessage
 
     public string TotalPriceCurrency { get; set; } = string.Empty;
 
+    public string OrderStatus { get; set; } = string.Empty;
+
     public DateTimeOffset CreatedAt { get; set; }
 
     public DateTimeOffset UpdatedAt { get; set; }
 
-    public OrderItemMessage[] OrderItems { get; set; }
-    
+    public OrderItemMessage[] OrderItems { get; set; } = Array.Empty<OrderItemMessage>();
 }

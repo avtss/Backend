@@ -59,9 +59,33 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - DbSettings__MigrationConnectionString=Host=postgres;Port=5432;Database=postgres;User Id=user;Password=mypassword;Pooling=true;LoadTableComposites=true;No Reset On Close=true;Persist Security Info=False;Maximum Pool Size=100;Connection Idle Lifetime=300;Keepalive=300;TCP Keepalive=True
       - DbSettings__ConnectionString=Host=pgbouncer;Port=6432;Database=postgres;User Id=user;Password=mypassword;Pooling=true;LoadTableComposites=true;No Reset On Close=true;Persist Security Info=False;Maximum Pool Size=100;Connection Idle Lifetime=300;Keepalive=300;TCP Keepalive=True
-      - RabbitMqSettings__HostName=rabbitmq
-      - RabbitMqSettings__Port=5672
-      - RabbitMqSettings__OrderCreatedQueue=oms.order.created
+      - RabbitMq__HostName=rabbitmq
+      - RabbitMq__Port=5672
+      - RabbitMq__Exchange=oms
+      - RabbitMq__ExchangeMappings__0__Queue=oms.order.created
+      - RabbitMq__ExchangeMappings__0__RoutingKeyPattern=order.created
+      - RabbitMq__ExchangeMappings__1__Queue=oms.order.status.changed
+      - RabbitMq__ExchangeMappings__1__RoutingKeyPattern=order.status.changed
+      - RabbitMq__ExchangeMappings__1__DeadLetter__Dlx=oms.order.dlx
+      - RabbitMq__ExchangeMappings__1__DeadLetter__RoutingKey=order.status.changed
+      - RabbitMq__ExchangeMappings__2__Queue=public.oms.order.created
+      - RabbitMq__ExchangeMappings__2__RoutingKeyPattern=order.created
+      - RabbitMq__ExchangeMappings__3__Queue=public.oms.order.status.changed
+      - RabbitMq__ExchangeMappings__3__RoutingKeyPattern=order.status.changed
+      - RabbitMq__ExchangeMappings__4__Queue=oms.logs
+      - RabbitMq__ExchangeMappings__4__RoutingKeyPattern=order.*
+      - RabbitMq__OrderCreated__Queue=oms.order.created
+      - RabbitMq__OrderCreated__BatchSize=100
+      - RabbitMq__OrderCreated__BatchTimeoutSeconds=1
+      - RabbitMq__OrderCreated__DeadLetter__Dlx=oms.order.dlx
+      - RabbitMq__OrderCreated__DeadLetter__Dlq=oms.order.created.dlq
+      - RabbitMq__OrderCreated__DeadLetter__RoutingKey=order.created
+      - RabbitMq__OrderStatusChanged__Queue=oms.order.status.changed
+      - RabbitMq__OrderStatusChanged__BatchSize=100
+      - RabbitMq__OrderStatusChanged__BatchTimeoutSeconds=1
+      - RabbitMq__OrderStatusChanged__DeadLetter__Dlx=oms.order.dlx
+      - RabbitMq__OrderStatusChanged__DeadLetter__Dlq=oms.order.status.changed.dlq
+      - RabbitMq__OrderStatusChanged__DeadLetter__RoutingKey=order.status.changed
     ports:
       - "5001:8080"
     depends_on:
@@ -79,9 +103,33 @@ services:
       dockerfile: Oms/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - RabbitMqSettings__HostName=rabbitmq
-      - RabbitMqSettings__Port=5672
-      - RabbitMqSettings__OrderCreatedQueue=oms.order.created
+      - RabbitMq__HostName=rabbitmq
+      - RabbitMq__Port=5672
+      - RabbitMq__Exchange=oms
+      - RabbitMq__ExchangeMappings__0__Queue=oms.order.created
+      - RabbitMq__ExchangeMappings__0__RoutingKeyPattern=order.created
+      - RabbitMq__ExchangeMappings__1__Queue=oms.order.status.changed
+      - RabbitMq__ExchangeMappings__1__RoutingKeyPattern=order.status.changed
+      - RabbitMq__ExchangeMappings__1__DeadLetter__Dlx=oms.order.dlx
+      - RabbitMq__ExchangeMappings__1__DeadLetter__RoutingKey=order.status.changed
+      - RabbitMq__ExchangeMappings__2__Queue=public.oms.order.created
+      - RabbitMq__ExchangeMappings__2__RoutingKeyPattern=order.created
+      - RabbitMq__ExchangeMappings__3__Queue=public.oms.order.status.changed
+      - RabbitMq__ExchangeMappings__3__RoutingKeyPattern=order.status.changed
+      - RabbitMq__ExchangeMappings__4__Queue=oms.logs
+      - RabbitMq__ExchangeMappings__4__RoutingKeyPattern=order.*
+      - RabbitMq__OrderCreated__Queue=oms.order.created
+      - RabbitMq__OrderCreated__BatchSize=100
+      - RabbitMq__OrderCreated__BatchTimeoutSeconds=1
+      - RabbitMq__OrderCreated__DeadLetter__Dlx=oms.order.dlx
+      - RabbitMq__OrderCreated__DeadLetter__Dlq=oms.order.created.dlq
+      - RabbitMq__OrderCreated__DeadLetter__RoutingKey=order.created
+      - RabbitMq__OrderStatusChanged__Queue=oms.order.status.changed
+      - RabbitMq__OrderStatusChanged__BatchSize=100
+      - RabbitMq__OrderStatusChanged__BatchTimeoutSeconds=1
+      - RabbitMq__OrderStatusChanged__DeadLetter__Dlx=oms.order.dlx
+      - RabbitMq__OrderStatusChanged__DeadLetter__Dlq=oms.order.status.changed.dlq
+      - RabbitMq__OrderStatusChanged__DeadLetter__RoutingKey=order.status.changed
       - HttpClient__Oms__BaseAddress=http://webapi:8080
     deploy:
       replicas: 5
